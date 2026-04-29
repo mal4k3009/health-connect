@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Search, MapPin, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DoctorCard } from "@/components/DoctorCard";
-import { doctors, specialties } from "@/data/mock";
+import { fetchDoctors, fetchSpecialties } from "@/lib/api";
 
 export const Route = createFileRoute("/find-doctors")({
   head: () => ({
@@ -22,9 +22,17 @@ function FindDoctorsPage() {
   const [q, setQ] = useState("");
   const [loc, setLoc] = useState("");
   const [gender, setGender] = useState<"" | "Male" | "Female">("");
-  const [maxFees, setMaxFees] = useState(150);
+  const [maxFees, setMaxFees] = useState(1500);
   const [availOnly, setAvailOnly] = useState(false);
   const [specialty, setSpecialty] = useState("");
+
+  const [doctors, setDoctors] = useState<any[]>([]);
+  const [specialties, setSpecialties] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchDoctors().then(setDoctors).catch(console.error);
+    fetchSpecialties().then(setSpecialties).catch(console.error);
+  }, []);
 
   const results = useMemo(() => {
     return doctors.filter((d) =>
@@ -35,7 +43,7 @@ function FindDoctorsPage() {
       (!availOnly || d.available) &&
       (!specialty || d.specialty === specialty)
     );
-  }, [q, loc, gender, maxFees, availOnly, specialty]);
+  }, [q, loc, gender, maxFees, availOnly, specialty, doctors]);
 
   return (
     <>
@@ -83,8 +91,8 @@ function FindDoctorsPage() {
             </div>
 
             <div>
-              <div className="mb-2 flex items-center justify-between text-xs font-medium text-muted-foreground"><span>MAX FEES</span><span className="text-foreground">${maxFees}</span></div>
-              <input type="range" min={20} max={150} value={maxFees} onChange={(e) => setMaxFees(Number(e.target.value))} className="w-full accent-[var(--primary)]" />
+              <div className="mb-2 flex items-center justify-between text-xs font-medium text-muted-foreground"><span>MAX FEES</span><span className="text-foreground">₹{maxFees}</span></div>
+              <input type="range" min={200} max={2000} step={100} value={maxFees} onChange={(e) => setMaxFees(Number(e.target.value))} className="w-full accent-[var(--primary)]" />
             </div>
 
             <label className="flex cursor-pointer items-center gap-2 text-sm">

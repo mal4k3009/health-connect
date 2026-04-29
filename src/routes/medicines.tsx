@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Search, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { medicines } from "@/data/mock";
+import { fetchMedicines } from "@/lib/api";
 
 export const Route = createFileRoute("/medicines")({
   head: () => ({
@@ -23,6 +23,12 @@ const categories = ["All", "Fever", "Cold", "Diabetes", "BP", "Vitamins"];
 function MedicinesPage() {
   const [cat, setCat] = useState("All");
   const [q, setQ] = useState("");
+  const [medicines, setMedicines] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchMedicines().then(setMedicines).catch(console.error);
+  }, []);
+
   const filtered = medicines.filter((m) => (cat === "All" || m.category === cat) && (!q || m.name.toLowerCase().includes(q.toLowerCase())));
 
   return (
@@ -52,7 +58,7 @@ function MedicinesPage() {
                 <div className="mt-3 text-xs font-medium text-primary">{m.category}</div>
                 <div className="mt-1 text-base font-semibold">{m.name}</div>
                 <div className="mt-3 flex items-center justify-between">
-                  <div className="text-lg font-bold">${m.price}</div>
+                  <div className="text-lg font-bold">₹{m.price}</div>
                   <Button size="sm" variant="hero" onClick={() => toast.success(`${m.name} added to cart`)}><ShoppingCart className="h-4 w-4" /> Add</Button>
                 </div>
               </div>

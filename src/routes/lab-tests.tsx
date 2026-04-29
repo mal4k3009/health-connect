@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { FlaskConical, Home, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { labTests } from "@/data/mock";
+import { useState, useEffect } from "react";
+import { fetchLabTests } from "@/lib/api";
 
 export const Route = createFileRoute("/lab-tests")({
   head: () => ({
@@ -17,6 +18,12 @@ export const Route = createFileRoute("/lab-tests")({
 });
 
 function LabTestsPage() {
+  const [labTests, setLabTests] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchLabTests().then(setLabTests).catch(console.error);
+  }, []);
+
   return (
     <>
       <section className="gradient-hero py-12">
@@ -40,7 +47,7 @@ function LabTestsPage() {
                   <div className="flex items-center gap-2"><Clock className="h-4 w-4 text-primary" /> Reports in {t.time}</div>
                 </div>
                 <div className="mt-5 flex items-center justify-between">
-                  <div className="text-2xl font-bold">${t.price}</div>
+                  <div className="text-2xl font-bold">₹{t.price}</div>
                   <Button variant="hero" onClick={() => toast.success(`${t.name} booked!`)}>Book Test</Button>
                 </div>
               </div>

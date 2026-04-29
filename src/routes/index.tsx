@@ -5,7 +5,7 @@ import { Search, Calendar, ShieldCheck, Clock, Stethoscope, Pill, FlaskConical, 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DoctorCard } from "@/components/DoctorCard";
-import { doctors, specialties, medicines, labTests } from "@/data/mock";
+import { fetchDoctors, fetchSpecialties, fetchMedicines, fetchLabTests } from "@/lib/api";
 import heroDoctor from "@/assets/hero-doctor.jpg";
 import heroTeam from "@/assets/hero-team.jpg";
 import heroHospital from "@/assets/hero-hospital.jpg";
@@ -157,7 +157,7 @@ function AboutSection() {
   );
 }
 
-function SpecialtiesSection() {
+function SpecialtiesSection({ specialties, doctors }: { specialties: any[], doctors: any[] }) {
   return (
     <section className="bg-secondary/40 py-20">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
@@ -246,7 +246,7 @@ function EmergencyPreview() {
   );
 }
 
-function MedicinesPreview() {
+function MedicinesPreview({ medicines }: { medicines: any[] }) {
   return (
     <section className="bg-secondary/40 py-20">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
@@ -266,7 +266,7 @@ function MedicinesPreview() {
               <div className="mt-3 text-xs font-medium text-primary">{m.category}</div>
               <div className="mt-1 text-sm font-semibold">{m.name}</div>
               <div className="mt-2 flex items-center justify-between">
-                <div className="text-base font-bold">${m.price}</div>
+                <div className="text-base font-bold">₹{m.price}</div>
                 <Button size="sm" variant="hero">Add</Button>
               </div>
             </div>
@@ -277,7 +277,7 @@ function MedicinesPreview() {
   );
 }
 
-function LabTestsPreview() {
+function LabTestsPreview({ labTests }: { labTests: any[] }) {
   return (
     <section className="py-20">
       <div className="mx-auto max-w-7xl px-4 lg:px-8">
@@ -299,7 +299,7 @@ function LabTestsPreview() {
               <h3 className="mt-3 text-base font-semibold">{t.name}</h3>
               <div className="mt-1 text-xs text-muted-foreground">Home sample collection · Reports in {t.time}</div>
               <div className="mt-4 flex items-center justify-between">
-                <div className="text-lg font-bold">${t.price}</div>
+                <div className="text-lg font-bold">₹{t.price}</div>
                 <Button size="sm" variant="hero">Book Test</Button>
               </div>
             </div>
@@ -347,14 +347,26 @@ function ContactPreview() {
 }
 
 function HomePage() {
+  const [doctors, setDoctors] = useState<any[]>([]);
+  const [specialties, setSpecialties] = useState<any[]>([]);
+  const [medicines, setMedicines] = useState<any[]>([]);
+  const [labTests, setLabTests] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchDoctors().then(setDoctors).catch(console.error);
+    fetchSpecialties().then(setSpecialties).catch(console.error);
+    fetchMedicines().then(setMedicines).catch(console.error);
+    fetchLabTests().then(setLabTests).catch(console.error);
+  }, []);
+
   return (
     <>
       <HeroSlider />
       <AboutSection />
-      <SpecialtiesSection />
+      <SpecialtiesSection specialties={specialties} doctors={doctors} />
       <EmergencyPreview />
-      <MedicinesPreview />
-      <LabTestsPreview />
+      <MedicinesPreview medicines={medicines} />
+      <LabTestsPreview labTests={labTests} />
       <ContactPreview />
     </>
   );
