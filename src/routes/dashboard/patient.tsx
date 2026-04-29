@@ -32,8 +32,8 @@ function PatientDashboard() {
   }, [loading, profile, navigate]);
 
   useEffect(() => {
-    if (profile?.uid) {
-      fetch(`${API_BASE_URL}/appointments?patientId=${profile.uid}`)
+    if (profile?.id) {
+      fetch(`${API_BASE_URL}/appointments?patientId=${profile.id}`)
         .then((r) => r.json())
         .then(setAppointments)
         .catch(console.error)

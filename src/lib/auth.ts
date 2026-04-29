@@ -1,26 +1,9 @@
-import { app } from "./firebase";
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
-  type User,
-} from "firebase/auth";
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-} from "firebase/firestore";
-
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+import { API_BASE_URL } from "./api";
 
 export type UserRole = "patient" | "doctor";
 
 export interface UserProfile {
-  uid: string;
+  id: string; // The backend uses Id
   name: string;
   phone: string;
   email: string;
@@ -34,15 +17,19 @@ export async function signUp(
   phone: string,
   role: UserRole
 ): Promise<UserProfile> {
-  const cred = await createUserWithEmailAndPassword(auth, email, password);
-  const profile: UserProfile = {
-    uid: cred.user.uid,
-    name,
-    phone,
-    email,
-    role,
-  };
-  await setDoc(doc(db, "users", cred.user.uid), profile);
+  const res = await fetch(`${API_BASE_URL}/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, name, phone, role }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || "Signup failed");
+  }
+
+  const profile: UserProfile = await res.json();
+  localStorage.setItem("medibook_user", JSON.stringify(profile));
   return profile;
 }
 
@@ -50,22 +37,35 @@ export async function signIn(
   email: string,
   password: string
 ): Promise<UserProfile> {
-  const cred = await signInWithEmailAndPassword(auth, email, password);
-  const snap = await getDoc(doc(db, "users", cred.user.uid));
-  if (!snap.exists()) throw new Error("User profile not found");
-  return snap.data() as UserProfile;
+  const res = await fetch(`${API_BASE_URL}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || "Invalid email or password");
+  }
+
+  const profile: UserProfile = await res.json();
+  localStorage.setItem("medibook_user", JSON.stringify(profile));
+  return profile;
 }
 
 export async function signOut(): Promise<void> {
-  await firebaseSignOut(auth);
+  localStorage.removeItem("medibook_user");
 }
 
-export async function getUserProfile(uid: string): Promise<UserProfile | null> {
-  const snap = await getDoc(doc(db, "users", uid));
-  if (!snap.exists()) return null;
-  return snap.data() as UserProfile;
+export function getCurrentUser(): UserProfile | null {
+  const userJson = localStorage.getItem("medibook_user");
+  if (userJson) {
+    try {
+      return JSON.parse(userJson) as UserProfile;
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
 }
 
-export function onAuthChange(cb: (user: User | null) => void) {
-  return onAuthStateChanged(auth, cb);
-}

@@ -33,8 +33,8 @@ function DoctorDashboard() {
   }, [loading, profile, navigate]);
 
   useEffect(() => {
-    if (profile?.uid) {
-      fetch(`${API_BASE_URL}/appointments?doctorId=${profile.uid}`)
+    if (profile?.id) {
+      fetch(`${API_BASE_URL}/appointments?doctorId=${profile.id}`)
         .then((r) => r.json())
         .then(setAppointments)
         .catch(console.error)

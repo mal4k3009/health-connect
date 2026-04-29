@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import authIllustration from "@/assets/auth-illustration.jpg";
 import { signIn, signUp, type UserRole } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -22,6 +23,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<"login" | "signup">("login");
+  const { refreshProfile } = useAuth();
   const [loading, setLoading] = useState(false);
 
   // Form fields
@@ -45,20 +47,17 @@ function AuthPage() {
           return;
         }
         const profile = await signUp(email, password, `${firstName} ${lastName}`, phone, role);
+        refreshProfile();
         toast.success("Account created! Welcome to MediBook 🎉");
         navigate({ to: profile.role === "doctor" ? "/dashboard/doctor" : "/dashboard/patient" });
       } else {
         const profile = await signIn(email, password);
+        refreshProfile();
         toast.success(`Welcome back, ${profile.name}!`);
         navigate({ to: profile.role === "doctor" ? "/dashboard/doctor" : "/dashboard/patient" });
       }
     } catch (err: any) {
-      const msg = err?.code === "auth/invalid-credential" || err?.code === "auth/user-not-found"
-        ? "Invalid email or password"
-        : err?.code === "auth/email-already-in-use"
-          ? "Email is already registered"
-          : err?.message || "Something went wrong";
-      toast.error(msg);
+      toast.error(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
