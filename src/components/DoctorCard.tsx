@@ -1,7 +1,20 @@
 import { Link } from "@tanstack/react-router";
 import { Star, MapPin, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Doctor } from "@/data/mock";
+
+type Doctor = {
+  id: string;
+  name: string;
+  specialty: string;
+  experience: string;
+  rating: number;
+  reviews: number;
+  fees: number;
+  location: string;
+  image: string;
+  gender: string;
+  available: boolean;
+};
 
 export function DoctorCard({ doctor }: { doctor: Doctor }) {
   return (
@@ -31,7 +44,7 @@ export function DoctorCard({ doctor }: { doctor: Doctor }) {
             <span className="font-medium">{doctor.rating}</span>
             <span className="text-muted-foreground">({doctor.reviews})</span>
           </div>
-          <div className="text-sm font-semibold text-foreground">${doctor.fees}</div>
+          <div className="text-sm font-semibold text-foreground">₹{doctor.fees}</div>
         </div>
         <Button asChild variant="hero" className="mt-4 w-full">
           <Link to="/auth">
