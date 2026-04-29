@@ -1,0 +1,19 @@
+## .NET build output
+bin/
+obj/
+
+## Service account keys — NEVER commit these
+*.json
+!appsettings*.json
+
+## VS files
+*.suo
+*.user
+.vs/
+
+## User-specific files
+*.userprefs
+
+## OS
+.DS_Store
+Thumbs.db

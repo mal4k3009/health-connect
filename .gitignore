@@ -30,3 +30,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# .NET build output
+Medibook.API/bin/
+Medibook.API/obj/
+
+# Firebase Service Account key — NEVER commit this
+Medibook.API/*.json
+!Medibook.API/appsettings*.json
+
