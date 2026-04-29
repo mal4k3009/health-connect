@@ -32,10 +32,10 @@ dist-ssr
 *.sw?
 
 # .NET build output
-Medibook.API/bin/
-Medibook.API/obj/
+backend/bin/
+backend/obj/
 
 # Firebase Service Account key — NEVER commit this
-Medibook.API/*.json
-!Medibook.API/appsettings*.json
+backend/*.json
+!backend/appsettings*.json
 
