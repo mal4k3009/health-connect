@@ -15,12 +15,14 @@ export async function signUp(
   password: string,
   name: string,
   phone: string,
-  role: UserRole
+  role: UserRole,
+  clinicName?: string,
+  specialty?: string
 ): Promise<UserProfile> {
   const res = await fetch(`${API_BASE_URL}/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, name, phone, role }),
+    body: JSON.stringify({ email, password, name, phone, role, clinicName, specialty }),
   });
 
   if (!res.ok) {

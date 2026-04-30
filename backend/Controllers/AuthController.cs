@@ -9,7 +9,9 @@ namespace Medibook.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly FirestoreDb _firestoreDb;
-        private const string CollectionName = "users";
+        private const string UsersCollection = "users";
+        private const string DoctorsCollection = "doctors";
+        private const string PatientsCollection = "patients";
 
         public AuthController(FirestoreDb firestoreDb)
         {
@@ -23,15 +25,17 @@ namespace Medibook.API.Controllers
             public string Name { get; set; } = string.Empty;
             public string Phone { get; set; } = string.Empty;
             public string Role { get; set; } = "patient";
+            public string? ClinicName { get; set; }
+            public string? Specialty { get; set; }
         }
 
         [HttpPost("signup")]
         public async Task<ActionResult<User>> Signup([FromBody] SignupRequest request)
         {
-            var collection = _firestoreDb.Collection(CollectionName);
+            var usersCollection = _firestoreDb.Collection(UsersCollection);
             
             // Check if email already exists
-            var query = collection.WhereEqualTo("Email", request.Email);
+            var query = usersCollection.WhereEqualTo("Email", request.Email);
             var snapshot = await query.GetSnapshotAsync();
             if (snapshot.Documents.Count > 0)
             {
@@ -41,14 +45,45 @@ namespace Medibook.API.Controllers
             var newUser = new User
             {
                 Email = request.Email,
-                Password = request.Password, // Unhashed for simplicity per context
+                Password = request.Password,
                 Name = request.Name,
                 Phone = request.Phone,
                 Role = request.Role
             };
 
-            var docRef = await collection.AddAsync(newUser);
-            newUser.Id = docRef.Id;
+            var userDocRef = await usersCollection.AddAsync(newUser);
+            newUser.Id = userDocRef.Id;
+
+            // Create doctor or patient record based on role
+            if (request.Role == "doctor")
+            {
+                var newDoctor = new Doctor
+                {
+                    UserId = newUser.Id,
+                    Name = request.Name,
+                    Email = request.Email,
+                    Phone = request.Phone,
+                    ClinicName = request.ClinicName ?? string.Empty,
+                    Specialty = request.Specialty ?? string.Empty,
+                    Available = true
+                };
+                
+                var doctorsCollection = _firestoreDb.Collection(DoctorsCollection);
+                await doctorsCollection.AddAsync(newDoctor);
+            }
+            else if (request.Role == "patient")
+            {
+                var newPatient = new Patient
+                {
+                    UserId = newUser.Id,
+                    Name = request.Name,
+                    Email = request.Email,
+                    Phone = request.Phone
+                };
+                
+                var patientsCollection = _firestoreDb.Collection(PatientsCollection);
+                await patientsCollection.AddAsync(newPatient);
+            }
 
             return Ok(newUser);
         }
@@ -62,7 +97,7 @@ namespace Medibook.API.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<User>> Login([FromBody] LoginRequest request)
         {
-            var collection = _firestoreDb.Collection(CollectionName);
+            var collection = _firestoreDb.Collection(UsersCollection);
             var query = collection.WhereEqualTo("Email", request.Email).WhereEqualTo("Password", request.Password);
             var snapshot = await query.GetSnapshotAsync();
 

@@ -34,6 +34,8 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<UserRole>("patient");
+  const [specialty, setSpecialty] = useState("");
+  const [clinicName, setClinicName] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +48,12 @@ function AuthPage() {
           setLoading(false);
           return;
         }
-        const profile = await signUp(email, password, `${firstName} ${lastName}`, phone, role);
+        if (role === "doctor" && (!specialty || !clinicName)) {
+          toast.error("Please fill in specialty and clinic name");
+          setLoading(false);
+          return;
+        }
+        const profile = await signUp(email, password, `${firstName} ${lastName}`, phone, role, clinicName, specialty);
         refreshProfile();
         toast.success("Account created! Welcome to MediBook 🎉");
         navigate({ to: profile.role === "doctor" ? "/dashboard/doctor" : "/dashboard/patient" });
@@ -117,6 +124,13 @@ function AuthPage() {
                   <div className="relative"><User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="Last Name" className="h-12 rounded-xl pl-10" /></div>
                 </div>
                 <div className="relative"><Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Mobile Number" className="h-12 rounded-xl pl-10" /></div>
+
+                {role === "doctor" && (
+                  <>
+                    <div className="relative"><Stethoscope className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input required value={specialty} onChange={(e) => setSpecialty(e.target.value)} placeholder="Specialty (e.g., Cardiology)" className="h-12 rounded-xl pl-10" /></div>
+                    <div className="relative"><Stethoscope className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input required value={clinicName} onChange={(e) => setClinicName(e.target.value)} placeholder="Clinic Name" className="h-12 rounded-xl pl-10" /></div>
+                  </>
+                )}
               </>
             )}
 

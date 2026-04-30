@@ -1,7 +1,10 @@
-import { Link, useLocation } from "@tanstack/react-router";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Menu, X, Stethoscope } from "lucide-react";
+import { Menu, X, Stethoscope, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { signOut } from "@/lib/auth";
+import { toast } from "sonner";
 
 const links = [
   { to: "/", label: "Home" },
@@ -17,6 +20,15 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { profile } = useAuth();
+
+  const handleLogout = async () => {
+    await signOut();
+    toast.success("Logged out successfully");
+    navigate({ to: "/" });
+    setOpen(false);
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -59,10 +71,27 @@ export function Navbar() {
           ))}
         </ul>
 
-        <div className="hidden lg:block">
-          <Button asChild variant="hero">
-            <Link to="/auth">Login / Sign Up</Link>
-          </Button>
+        <div className="hidden lg:flex items-center gap-3">
+          {profile ? (
+            <>
+              <Button asChild variant="outline">
+                <Link to={profile.role === "doctor" ? "/dashboard/doctor" : "/dashboard/patient"}>
+                  Dashboard
+                </Link>
+              </Button>
+              <Button
+                variant="hero"
+                onClick={handleLogout}
+                className="gap-2"
+              >
+                <LogOut className="h-4 w-4" /> Logout
+              </Button>
+            </>
+          ) : (
+            <Button asChild variant="hero">
+              <Link to="/auth">Login / Sign Up</Link>
+            </Button>
+          )}
         </div>
 
         <button
@@ -89,10 +118,27 @@ export function Navbar() {
                 </Link>
               </li>
             ))}
-            <li className="pt-2">
-              <Button asChild variant="hero" className="w-full">
-                <Link to="/auth">Login / Sign Up</Link>
-              </Button>
+            <li className="pt-2 space-y-2">
+              {profile ? (
+                <>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link to={profile.role === "doctor" ? "/dashboard/doctor" : "/dashboard/patient"}>
+                      Dashboard
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="hero"
+                    onClick={handleLogout}
+                    className="w-full gap-2"
+                  >
+                    <LogOut className="h-4 w-4" /> Logout
+                  </Button>
+                </>
+              ) : (
+                <Button asChild variant="hero" className="w-full">
+                  <Link to="/auth">Login / Sign Up</Link>
+                </Button>
+              )}
             </li>
           </ul>
         </div>

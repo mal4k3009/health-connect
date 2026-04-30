@@ -3,7 +3,7 @@ using Google.Cloud.Firestore;
 namespace Medibook.API.Models
 {
     [FirestoreData]
-    public class LabTest
+    public class AppointmentSlot
     {
         [FirestoreDocumentId]
         public string Id { get; set; } = string.Empty;
@@ -15,16 +15,22 @@ namespace Medibook.API.Models
         public string DoctorName { get; set; } = string.Empty;
 
         [FirestoreProperty]
-        public string ClinicName { get; set; } = string.Empty;
+        public string Date { get; set; } = string.Empty; // Format: YYYY-MM-DD
 
         [FirestoreProperty]
-        public string Name { get; set; } = string.Empty;
+        public string StartTime { get; set; } = string.Empty; // Format: HH:mm
 
         [FirestoreProperty]
-        public double Price { get; set; }
+        public string EndTime { get; set; } = string.Empty; // Format: HH:mm
 
         [FirestoreProperty]
-        public string Time { get; set; } = string.Empty;
+        public int TotalSlots { get; set; }
+
+        [FirestoreProperty]
+        public int AvailableSlots { get; set; }
+
+        [FirestoreProperty]
+        public double ConsultationFees { get; set; }
 
         [FirestoreProperty]
         public string CreatedAt { get; set; } = System.DateTime.UtcNow.ToString("o");

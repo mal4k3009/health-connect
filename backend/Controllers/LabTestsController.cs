@@ -38,6 +38,26 @@ namespace Medibook.API.Controllers
             return Ok(labTests);
         }
 
+        [HttpGet("doctor/{doctorId}")]
+        public async Task<ActionResult<IEnumerable<LabTest>>> GetLabTestsByDoctor(string doctorId)
+        {
+            var query = _firestoreDb.Collection(CollectionName).WhereEqualTo("DoctorId", doctorId);
+            var snapshot = await query.GetSnapshotAsync();
+
+            var labTests = new List<LabTest>();
+            foreach (var document in snapshot.Documents)
+            {
+                if (document.Exists)
+                {
+                    var labTest = document.ConvertTo<LabTest>();
+                    labTest.Id = document.Id;
+                    labTests.Add(labTest);
+                }
+            }
+
+            return Ok(labTests);
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<LabTest>> GetLabTest(string id)
         {
@@ -55,13 +75,48 @@ namespace Medibook.API.Controllers
         }
         
         [HttpPost]
-        public async Task<ActionResult<LabTest>> CreateLabTest(LabTest labTest)
+        public async Task<ActionResult<LabTest>> CreateLabTest([FromBody] LabTest labTest)
         {
+            if (string.IsNullOrEmpty(labTest.DoctorId))
+            {
+                return BadRequest("DoctorId is required");
+            }
+
             var collection = _firestoreDb.Collection(CollectionName);
             var docRef = await collection.AddAsync(labTest);
             labTest.Id = docRef.Id;
 
-            return Ok(labTest);
+            return CreatedAtAction(nameof(GetLabTest), new { id = labTest.Id }, labTest);
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateLabTest(string id, [FromBody] LabTest labTest)
+        {
+            var docRef = _firestoreDb.Collection(CollectionName).Document(id);
+            var snapshot = await docRef.GetSnapshotAsync();
+
+            if (!snapshot.Exists)
+            {
+                return NotFound();
+            }
+
+            await docRef.SetAsync(labTest);
+            return NoContent();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteLabTest(string id)
+        {
+            var docRef = _firestoreDb.Collection(CollectionName).Document(id);
+            var snapshot = await docRef.GetSnapshotAsync();
+
+            if (!snapshot.Exists)
+            {
+                return NotFound();
+            }
+
+            await docRef.DeleteAsync();
+            return NoContent();
         }
     }
 }
