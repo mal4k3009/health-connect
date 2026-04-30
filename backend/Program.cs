@@ -3,20 +3,27 @@ using Google.Apis.Auth.OAuth2;
 using Google.Cloud.Firestore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddLogging(config =>
+{
+    config.AddConsole();
+    config.SetMinimumLevel(LogLevel.Information);
+});
 
 // Configure CORS for Vite frontend
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowViteApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:8080")
+        policy.WithOrigins("http://localhost:5173", "http://localhost:8080", "http://localhost:3000")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -40,8 +47,19 @@ builder.Services.AddSingleton(provider => FirestoreDb.Create(projectId));
 
 var app = builder.Build();
 
-app.UseHttpsRedirection();
+// Use CORS before HTTPS redirection
 app.UseCors("AllowViteApp");
+
+// Only use HTTPS redirection in production
+if (app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
+
 app.MapControllers();
+
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Starting MediBook API...");
+logger.LogInformation("Listening on: http://localhost:5275 and https://localhost:5274");
 
 app.Run();

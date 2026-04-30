@@ -80,11 +80,16 @@ function DoctorDashboard() {
     setLabTestLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/labtests/doctor/${profile.id}`);
+      if (!res.ok) {
+        console.error(`API Error: ${res.status} ${res.statusText}`);
+        setLabTests([]);
+        return;
+      }
       const data = await res.json();
       setLabTests(data || []);
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to load lab tests");
+      console.error("Failed to load lab tests:", err);
+      setLabTests([]);
     } finally {
       setLabTestLoading(false);
     }
@@ -95,11 +100,16 @@ function DoctorDashboard() {
     setSlotsLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/appointmentslots/doctor/${profile.id}`);
+      if (!res.ok) {
+        console.error(`API Error: ${res.status} ${res.statusText}`);
+        setAppointmentSlots([]);
+        return;
+      }
       const data = await res.json();
       setAppointmentSlots(data || []);
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to load appointment slots");
+      console.error("Failed to load appointment slots:", err);
+      setAppointmentSlots([]);
     } finally {
       setSlotsLoading(false);
     }
@@ -150,10 +160,13 @@ function DoctorDashboard() {
         setShowLabTestForm(false);
         loadLabTests();
       } else {
-        toast.error("Failed to add lab test");
+        const errorText = await res.text();
+        console.error(`Error: ${res.status} - ${errorText}`);
+        toast.error(`Failed to add lab test: ${res.statusText}`);
       }
-    } catch (err) {
-      toast.error("Error adding lab test");
+    } catch (err: any) {
+      console.error("Error adding lab test:", err);
+      toast.error(err.message || "Error adding lab test. Make sure backend is running.");
     }
   };
 
@@ -198,10 +211,13 @@ function DoctorDashboard() {
         setShowSlotForm(false);
         loadAppointmentSlots();
       } else {
-        toast.error("Failed to add appointment slot");
+        const errorText = await res.text();
+        console.error(`Error: ${res.status} - ${errorText}`);
+        toast.error(`Failed to add appointment slot: ${res.statusText}`);
       }
-    } catch (err) {
-      toast.error("Error adding appointment slot");
+    } catch (err: any) {
+      console.error("Error adding appointment slot:", err);
+      toast.error(err.message || "Error adding slot. Make sure backend is running.");
     }
   };
 
@@ -523,73 +539,6 @@ function DoctorDashboard() {
                 </div>
               )}
             </>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-              <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} text-white`}>
-                <stat.icon className="h-6 w-6" />
-              </div>
-              <div>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <div className="text-xs text-muted-foreground">{stat.label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Appointments */}
-        <div className="mt-8">
-          <h2 className="mb-4 text-lg font-bold">Appointment Requests</h2>
-          {apptLoading ? (
-            <div className="rounded-2xl bg-card p-8 text-center text-muted-foreground shadow-soft">Loading...</div>
-          ) : appointments.length === 0 ? (
-            <div className="rounded-2xl border bg-card p-10 text-center shadow-soft">
-              <Calendar className="mx-auto h-12 w-12 text-muted-foreground" />
-              <p className="mt-3 text-muted-foreground">No appointments yet. Your schedule is clear!</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {appointments.map((appt) => (
-                <div key={appt.id} className="rounded-2xl bg-card p-5 shadow-soft">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="font-semibold">{appt.patientName}</div>
-                      <div className="text-sm text-muted-foreground">{appt.date} at {appt.timeSlot}</div>
-                      {appt.notes && <div className="mt-1 text-xs text-muted-foreground italic">"{appt.notes}"</div>}
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_COLORS[appt.status]}`}>
-                        {appt.status}
-                      </span>
-                      <span className="font-bold text-sm">₹{appt.fees}</span>
-                    </div>
-                  </div>
-                  {appt.status === "Pending" && (
-                    <div className="mt-4 flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="hero"
-                        disabled={updating === appt.id}
-                        onClick={() => updateStatus(appt.id, "Confirmed")}
-                      >
-                        <CheckCircle2 className="h-4 w-4" /> Confirm
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={updating === appt.id}
-                        onClick={() => updateStatus(appt.id, "Cancelled")}
-                      >
-                        <XCircle className="h-4 w-4" /> Cancel
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
           )}
         </div>
       </div>
